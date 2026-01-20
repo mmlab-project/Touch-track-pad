@@ -1,0 +1,12 @@
+﻿  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\smartmause\windows\SmartMouseReceiver\ServerHost.cs(41,23): warning CS1998: この非同期メソッドには 'await' 演算子がないため、同期的に実行されます。'await' 演算子を使用して非ブロッキング API 呼び出しを待機するか、'await Task.Run(...)' を使用してバックグラウンドのスレッドに対して CPU 主体の処理を実行することを検討してください。 [D:\smartmause\windows\SmartMouseReceiver\SmartMouseReceiver.csproj]
+  SmartMouseReceiver -> D:\smartmause\windows\SmartMouseReceiver\bin\Debug\net8.0-windows\SmartMouseReceiver.dll
+
+ビルドに成功しました。
+
+D:\smartmause\windows\SmartMouseReceiver\ServerHost.cs(41,23): warning CS1998: この非同期メソッドには 'await' 演算子がないため、同期的に実行されます。'await' 演算子を使用して非ブロッキング API 呼び出しを待機するか、'await Task.Run(...)' を使用してバックグラウンドのスレッドに対して CPU 主体の処理を実行することを検討してください。 [D:\smartmause\windows\SmartMouseReceiver\SmartMouseReceiver.csproj]
+    1 個の警告
+    0 エラー
+
+経過時間 00:00:05.15

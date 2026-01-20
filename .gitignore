@@ -1,0 +1,32 @@
+# Visual Studio / C#
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+publish/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv
+env/
+venv/
+
+# Android
+.gradle/
+local.properties
+.idea/
+build/
+app/build/
+*.iml
+*.hprof
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editors
+.vscode/
