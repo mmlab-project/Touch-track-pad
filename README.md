@@ -1,6 +1,6 @@
-# SmartMouse
+# Touch-track-pad
 
-SmartMouseは、AndroidスマートフォンをWindows PCのトラックパッド、キーボード、およびマクロコントローラーとして使用するためのアプリケーションです。
+Touch-track-padは、AndroidスマートフォンをWindows PCのトラックパッド、キーボード、およびマクロコントローラーとして使用するためのアプリケーションです。
 
 ## 機能
 
