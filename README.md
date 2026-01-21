@@ -46,12 +46,12 @@
 
 <!-- プロジェクト名を記載 -->
 
-# 📱 SmartMouse Infinity
+# 📱 GlideDeck
 
 > **AndroidスマートフォンをWindows PCの高性能トラックパッド・キーボード・マクロコントローラーに変える**
 
 外出先でマウスがない？プレゼンでリモコンが必要？複雑な操作を効率化したい？  
-SmartMouse Infinityがあれば、お手持ちのスマホが最高の入力デバイスに早変わり！
+GlideDeckがあれば、お手持ちのスマホが最高の入力デバイスに早変わり！
 
 ## 🎥 デモ
 
@@ -77,7 +77,7 @@ SmartMouse Infinityがあれば、お手持ちのスマホが最高の入力デ�
 
 ## プロジェクトについて
 
-SmartMouse Infinityは、お手持ちのAndroidスマートフォンをWindows PCの入力デバイスとして活用できる革新的なアプリケーションです。Wi-Fi経由で接続し、スマホの画面をトラックパッドやキーボードとして使用できます。
+GlideDeckは、お手持ちのAndroidスマートフォンをWindows PCの入力デバイスとして活用できる革新的なアプリケーションです。Wi-Fi経由で接続し、スマホの画面をトラックパッドやキーボードとして使用できます。
 
 ### 💡 開発の背景
 
@@ -231,9 +231,9 @@ smartmause/
 
 #### 方法1: リリース版を使用（推奨）
 
-1. [Releasesページ](https://github.com/mmlab-project/Touch-track-pad/releases) から最新版の `SmartMouseReceiver.exe` をダウンロード
+1. [Releasesページ](https://github.com/mmlab-project/Touch-track-pad/releases) から最新版の `GlideDeckReceiver.exe` をダウンロード
 2. ダウンロードしたファイルを任意の場所に配置
-3. `SmartMouseReceiver.exe` を実行
+3. `GlideDeckReceiver.exe` を実行
 
 > [!IMPORTANT]
 > 初回起動時、Windowsファイアウォールの警告が表示される場合があります。「アクセスを許可する」を選択してください。
@@ -256,7 +256,7 @@ dotnet run
 
 #### 方法1: APKをインストール（推奨）
 
-1. [Releasesページ](https://github.com/mmlab-project/Touch-track-pad/releases) から最新版の `SmartMouse.apk` をダウンロード
+1. [Releasesページ](https://github.com/mmlab-project/Touch-track-pad/releases) から最新版の `GlideDeck.apk` をダウンロード
 2. スマートフォンにAPKをインストール
 3. アプリを起動
 
@@ -282,13 +282,13 @@ git clone https://github.com/mmlab-project/Touch-track-pad.git
 <details open>
 <summary><b>ステップ1: Windows側の準備</b></summary>
 
-1. `SmartMouseReceiver.exe` を起動
+1. `GlideDeckReceiver.exe` を起動
 2. メインウィンドウにQRコードが自動表示されます
 
 ![QRコード表示画面のイメージ]
 ```
 ┌─────────────────────────┐
-│  SmartMouse Receiver    │
+│  GlideDeck Receiver      │
 ├─────────────────────────┤
 │                         │
 │     ███████████████     │
@@ -305,7 +305,7 @@ git clone https://github.com/mmlab-project/Touch-track-pad.git
 <details open>
 <summary><b>ステップ2: Android側の準備</b></summary>
 
-1. SmartMouse Infinityアプリを起動
+1. GlideDeckアプリを起動
 2. カメラ権限を許可（初回のみ）
 3. QRスキャナー画面が自動的に表示されます
 
@@ -568,7 +568,7 @@ Android Studio でプロジェクトを開き、実機またはエミュレー�
 
 **解決方法**:
 1. ✅ カメラ権限が許可されているか確認
-   - 設定 → アプリ → SmartMouse Infinity → 権限 → カメラ
+   - 設定 → アプリ → GlideDeck → 権限 → カメラ
 2. ✅ QRコードが画面全体に表示されるように距離を調整
 3. ✅ 照明が暗すぎる場合は明るくする
 4. ✅ カメラレンズが汚れていないか確認
@@ -602,7 +602,7 @@ ipconfig
 → ファイアウォールとネットワーク保護
 → 「アプリケーションをファイアウォール経由で許可する」
 ```
-- ✅ `SmartMouseReceiver.exe` がプライベートネットワークで許可されているか
+- ✅ `GlideDeckReceiver.exe` がプライベートネットワークで許可されているか
 - ✅ 許可されていない場合は「設定の変更」→「別のアプリの許可」から追加
 
 **3. ルーター設定確認**
@@ -651,7 +651,7 @@ This application requires the .NET Runtime
 1. [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) をダウンロード
 2. **Windows x64** 版のインストーラーを実行
 3. インストール後、PCを再起動
-4. `SmartMouseReceiver.exe` を再度実行
+4. `GlideDeckReceiver.exe` を再度実行
 
 </details>
 
@@ -693,7 +693,7 @@ taskkill /PID <プロセスID> /F
 
 **解決方法**:
 - ✅ 管理者権限で実行してみる
-  - `SmartMouseReceiver.exe` を右クリック → 「管理者として実行」
+  - `GlideDeckReceiver.exe` を右クリック → 「管理者として実行」
 - ✅ セキュリティソフトがブロックしていないか確認
 - ✅ Windows Updateを実行して最新の状態にする
 
@@ -719,7 +719,7 @@ taskkill /PID <プロセスID> /F
    3. 最新版のAPKを再インストール
    ```
 3. ✅ アプリのキャッシュをクリア
-   - 設定 → アプリ → SmartMouse Infinity → ストレージ → キャッシュを削除
+   - 設定 → アプリ → GlideDeck → ストレージ → キャッシュを削除
 
 </details>
 
@@ -731,7 +731,7 @@ taskkill /PID <プロセスID> /F
 **解決方法**:
 1. ✅ カメラ権限を確認
    ```
-   設定 → アプリ → SmartMouse Infinity → 権限 → カメラ → 許可
+   設定 → アプリ → GlideDeck → 権限 → カメラ → 許可
    ```
 2. ✅ 他のアプリがカメラを使用していないか確認
    - カメラアプリなどを終了してから再試行
