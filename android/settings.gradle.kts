@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SmartMauseInfinity"
+rootProject.name = "GlideDeck"
 include(":app")

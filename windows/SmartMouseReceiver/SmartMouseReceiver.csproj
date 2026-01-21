@@ -6,11 +6,11 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>SmartMouseReceiver</AssemblyName>
+    <AssemblyName>GlideDeckReceiver</AssemblyName>
     <RootNamespace>SmartMouseReceiver</RootNamespace>
-    <Version>1.0.0</Version>
-    <Authors>SmartMause</Authors>
-    <Description>Ultimate Wi-Fi Remote Infinity - Windows Receiver</Description>
+    <Version>1.1.0</Version>
+    <Authors>GlideDeck</Authors>
+    <Description>GlideDeck - Ultimate Wi-Fi Remote - Windows Receiver</Description>
   </PropertyGroup>
 
   <ItemGroup>
