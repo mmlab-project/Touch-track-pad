@@ -35,7 +35,7 @@
 
         <!-- 共通タイトル -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,10">
-            <TextBlock Text="📱 Smart Mouse Receiver"
+            <TextBlock Text="📱 GlideDeck Receiver"
                        FontSize="24" FontWeight="Bold"
                        Foreground="{StaticResource TextBrush}"
                        HorizontalAlignment="Center"/>
