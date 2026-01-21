@@ -45,6 +45,3 @@ dotnet build
 
 Android Studioを使用して `android` ディレクトリのプロジェクトを開き、ビルドしてください。
 
-## ライセンス
-
-[License details here if applicable, otherwise remove]
