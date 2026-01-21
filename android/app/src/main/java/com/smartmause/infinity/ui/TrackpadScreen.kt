@@ -79,25 +79,22 @@ fun TrackpadScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background) // Use Theme background
             .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { viewModel.networkClient.sendClick("LEFT"); viewModel.hapticManager.performClick() },
-                    onLongPress = { 
-                        showMenu = !showMenu // Toggle menu on long press
-                        viewModel.hapticManager.performHeavyClick() 
-                    },
-                    onDoubleTap = { viewModel.networkClient.sendClick("LEFT"); viewModel.hapticManager.performClick() }
-                )
-            }
-            .pointerInput(Unit) {
                 awaitPointerEventScope {
                     var isGestureInProgress = false
-                    var gestureType = "NONE" // NONE, TAP, SCROLL, SWIPE, GESTURE_3, GESTURE_4
+                    var gestureType = "NONE" // NONE, TAP, SCROLL, SWIPE, GESTURE_3, GESTURE_4, DRAG_1
                     var initialCentroid = androidx.compose.ui.geometry.Offset.Zero
                     var initialSpan = 0f
                     var initialTime = 0L
                     var hasTriggered = false
                     var maxPressedCount = 0
                     var previousPressedCount = 0
+                    
+                    // Double-tap-and-hold state
+                    var lastTapTime = 0L
+                    var lastTapPosition = androidx.compose.ui.geometry.Offset.Zero
+                    var tapCount = 0
+                    var isDragging = false
+
 
                     while (true) {
                         val event = awaitPointerEvent()
@@ -136,8 +133,35 @@ fun TrackpadScreen(
 
                         if (pressedCount == 0) {
                             // Gesture ended (Lift all fingers)
-                            // Check for Taps
-                           if (!hasTriggered && isGestureInProgress && System.currentTimeMillis() - initialTime < 300) {
+                            val currentTime = System.currentTimeMillis()
+                            val gestureDuration = currentTime - initialTime
+                            
+                            // Release mouse button if dragging
+                            if (isDragging || gestureType == "DRAG_1") {
+                                viewModel.networkClient.sendMouseUp("LEFT")
+                                isDragging = false
+                            }
+                            
+                            // Handle 1-finger taps (single and double)
+                            if (maxPressedCount == 1 && gestureDuration < 300 && !hasTriggered && gestureType != "LONG_PRESS" && gestureType != "DRAG_1") {
+                                val timeSinceLastTap = currentTime - lastTapTime
+                                
+                                // Send click immediately for every tap
+                                viewModel.networkClient.sendClick("LEFT")
+                                viewModel.hapticManager.performClick()
+                                
+                                // Track for double-tap-and-hold detection
+                                if (timeSinceLastTap < 300) {
+                                    tapCount = 2
+                                } else {
+                                    tapCount = 1
+                                }
+                                lastTapTime = currentTime
+                                lastTapPosition = initialCentroid
+                            }
+                            
+                            // Check for other multi-finger taps
+                           if (!hasTriggered && isGestureInProgress && gestureDuration < 300) {
                                 if (maxPressedCount == 2 && gestureType != "SCROLL" && gestureType != "SWIPE") {
                                     viewModel.networkClient.sendClick("RIGHT")
                                     viewModel.hapticManager.performClick()
@@ -146,6 +170,7 @@ fun TrackpadScreen(
                                     viewModel.hapticManager.performClick()
                                 }
                             }
+                            
                             isGestureInProgress = false
                             hasTriggered = false
                             gestureType = "NONE"
@@ -183,9 +208,48 @@ fun TrackpadScreen(
                              }
                         } else {
                             // Gesture continues
-                            if (pressedCount == 1 && gestureType == "MOVE") {
+                            if (pressedCount == 1 && (gestureType == "MOVE" || gestureType == "DRAG_1")) {
                                 val change = pressed.first()
-                                if (change.pressed && change.previousPressed) {
+                                val currentTime = System.currentTimeMillis()
+                                
+                                // Check for double-tap-and-hold to start drag
+                                if (!isDragging && gestureType == "MOVE") {
+                                    val timeSinceLastTap = currentTime - lastTapTime
+                                    val distanceFromLastTap = kotlin.math.sqrt(
+                                        (change.position.x - lastTapPosition.x) * (change.position.x - lastTapPosition.x) +
+                                        (change.position.y - lastTapPosition.y) * (change.position.y - lastTapPosition.y)
+                                    )
+                                    
+                                    // If this touch started right after a recent tap (double-tap-and-hold pattern)
+                                    if (tapCount >= 1 && timeSinceLastTap < 300 && distanceFromLastTap < 50) {
+                                        // Wait for hold (150ms) before starting drag
+                                        if (currentTime - initialTime > 150) {
+                                            // Start drag mode
+                                            isDragging = true
+                                            gestureType = "DRAG_1"
+                                            viewModel.networkClient.sendMouseDown("LEFT")
+                                            viewModel.hapticManager.performClick()
+                                            tapCount = 0
+                                        }
+                                    }
+                                    
+                                    // Check for long press (menu)
+                                    if (currentTime - initialTime > 500 && !hasTriggered) {
+                                        val totalMove = kotlin.math.sqrt(
+                                            (change.position.x - initialCentroid.x) * (change.position.x - initialCentroid.x) +
+                                            (change.position.y - initialCentroid.y) * (change.position.y - initialCentroid.y)
+                                        )
+                                        if (totalMove < 20) {
+                                            showMenu = !showMenu
+                                            viewModel.hapticManager.performHeavyClick()
+                                            hasTriggered = true
+                                            gestureType = "LONG_PRESS"
+                                        }
+                                    }
+                                }
+                                
+                                // Handle cursor movement or dragging
+                                if (change.pressed && change.previousPressed && gestureType != "LONG_PRESS") {
                                   val dx = (change.position.x - change.previousPosition.x) * cursorSpeed
                                   val dy = (change.position.y - change.previousPosition.y) * cursorSpeed
                                   if (dx != 0f || dy != 0f) {
@@ -247,11 +311,6 @@ fun TrackpadScreen(
                                 val moveY = cy - initialCentroid.y
                                 val spanRatio = currentSpan / (initialSpan + 0.1f)
                                 
-                                // Invalidate Tap if moved significantly
-                                if (abs(moveX) > 30 || abs(moveY) > 30 || abs(currentSpan - initialSpan) > 30) {
-                                    // gestureType remains GESTURE_3 but trigger logic activates
-                                }
-
                                 if (!hasTriggered) {
                                     // Pinch In (Show Desktop)
                                     if (spanRatio < 0.7f) {
@@ -259,7 +318,7 @@ fun TrackpadScreen(
                                         viewModel.hapticManager.performHeavyClick()
                                         hasTriggered = true
                                     }
-                                    // Swipe X (Alt Tab) - Increased threshold slightly
+                                    // Swipe X (Alt Tab)
                                     else if (abs(moveX) > 60 && abs(moveY) < 50) {
                                         viewModel.networkClient.sendKey("Tab", listOf("ALT"))
                                         viewModel.hapticManager.performHeavyClick()

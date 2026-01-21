@@ -188,6 +188,21 @@ class NetworkClient {
         })
     }
 
+    fun sendMouseDown(button: String) {
+        sendTcpAsync(JSONObject().apply {
+            put("type", "MOUSE_DOWN")
+            put("button", button)
+        })
+    }
+
+    fun sendMouseUp(button: String) {
+        sendTcpAsync(JSONObject().apply {
+            put("type", "MOUSE_UP")
+            put("button", button)
+        })
+    }
+
+
     fun sendKey(code: String, modifiers: List<String> = emptyList()) {
         sendTcpAsync(JSONObject().apply {
             put("type", "KEY")
