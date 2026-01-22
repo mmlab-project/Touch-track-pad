@@ -233,19 +233,7 @@ fun TrackpadScreen(
                                         }
                                     }
                                     
-                                    // Check for long press (menu)
-                                    if (currentTime - initialTime > 500 && !hasTriggered) {
-                                        val totalMove = kotlin.math.sqrt(
-                                            (change.position.x - initialCentroid.x) * (change.position.x - initialCentroid.x) +
-                                            (change.position.y - initialCentroid.y) * (change.position.y - initialCentroid.y)
-                                        )
-                                        if (totalMove < 20) {
-                                            showMenu = !showMenu
-                                            viewModel.hapticManager.performHeavyClick()
-                                            hasTriggered = true
-                                            gestureType = "LONG_PRESS"
-                                        }
-                                    }
+                                    // 1-finger long press removed - now using 2-finger long press for menu
                                 }
                                 
                                 // Handle cursor movement or dragging
@@ -259,7 +247,25 @@ fun TrackpadScreen(
                                 }
                             } else if (pressedCount == 2) {
                                 val change1 = pressed[0]
-                                if (change1.pressed && change1.previousPressed) {
+                                val currentTime = System.currentTimeMillis()
+                                
+                                // Calculate total movement from initial position
+                                val cx = pressed.map { it.position.x }.average().toFloat()
+                                val cy = pressed.map { it.position.y }.average().toFloat()
+                                val totalMove = kotlin.math.sqrt(
+                                    (cx - initialCentroid.x) * (cx - initialCentroid.x) +
+                                    (cy - initialCentroid.y) * (cy - initialCentroid.y)
+                                )
+                                
+                                // 2-Finger Long Press -> Show Menu
+                                if (!hasTriggered && gestureType == "TAP_2" && currentTime - initialTime > 500 && totalMove < 30) {
+                                    showMenu = !showMenu
+                                    viewModel.hapticManager.performHeavyClick()
+                                    hasTriggered = true
+                                    gestureType = "LONG_PRESS_2"
+                                }
+                                
+                                if (change1.pressed && change1.previousPressed && gestureType != "LONG_PRESS_2") {
                                     val rawDy = (change1.position.y - change1.previousPosition.y)
                                     val rawDx = (change1.position.x - change1.previousPosition.x)
                                     
@@ -279,7 +285,7 @@ fun TrackpadScreen(
                                 }
                                 
                                 // Swipe Logic
-                                if (!hasTriggered && gestureType != "SWIPE") {
+                                if (!hasTriggered && gestureType != "SWIPE" && gestureType != "LONG_PRESS_2") {
                                      val deltaX = pressed[0].position.x - pressed[0].previousPosition.x
                                      if (abs(deltaX) > 20) { 
                                          if (deltaX > 0) {
