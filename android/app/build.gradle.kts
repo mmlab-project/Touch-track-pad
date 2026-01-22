@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.smartmause.infinity"
+    namespace = "com.glidedeck.infinity"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.smartmause.infinity"
+        applicationId = "com.glidedeck.infinity"
         minSdk = 26
         targetSdk = 34
         versionCode = 2
