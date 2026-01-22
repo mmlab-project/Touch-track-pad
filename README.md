@@ -4,7 +4,7 @@
   <img src="docs/icon.png" alt="GlideDeck Icon" width="128" height="128">
 </p>
 <h1 align="center">GlideDeck</h1>
-<p align="center"><em>Ultimate Wi-Fi Remote for Windows</em></p>
+<p align="center"><em>スマホがトラックパッドに変わる</em></p>
 
 ## 使用技術一覧
 
