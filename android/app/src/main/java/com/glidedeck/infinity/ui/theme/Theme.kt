@@ -17,25 +17,27 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = NeonAccent,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = GlassBackground,
-    surface = GlassSurface,
+    primary = IosBlue,
+    secondary = IosBlue,
+    tertiary = IosGreen,
+    background = DarkBackground,
+    surface = DarkSurface,
     onPrimary = Color.White,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary
+    onBackground = TextPrimaryDark,
+    onSurface = TextPrimaryDark,
+    error = IosRed
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = NeonAccent,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFF0F0F0),
-    surface = Color.White,
+    primary = IosBlue,
+    secondary = IosBlue,
+    tertiary = IosGreen,
+    background = LightBackground,
+    surface = LightSurface,
     onPrimary = Color.White,
-    onBackground = Color.Black,
-    onSurface = Color.Black
+    onBackground = TextPrimaryLight,
+    onSurface = TextPrimaryLight,
+    error = IosRed
 )
 
 @Composable

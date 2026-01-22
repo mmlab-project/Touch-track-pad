@@ -25,7 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +33,10 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -94,6 +98,10 @@ fun TrackpadScreen(
                     var lastTapPosition = androidx.compose.ui.geometry.Offset.Zero
                     var tapCount = 0
                     var isDragging = false
+                    
+                    // Smooth Scroll Accumulators
+                    var scrollAccumulatorX = 0f
+                    var scrollAccumulatorY = 0f
 
 
                     while (true) {
@@ -109,6 +117,12 @@ fun TrackpadScreen(
                              if (pressedCount == 2) {
                                  // Transition 1 -> 2 fingers: Upgrade to TAP_2 / Scroll mode
                                  gestureType = "TAP_2"
+                                 
+                                 // Reset anchor for 2-finger gesture stability check (Long Press)
+                                 val cx = pressed.map { it.position.x }.average().toFloat()
+                                 val cy = pressed.map { it.position.y }.average().toFloat()
+                                 initialCentroid = androidx.compose.ui.geometry.Offset(cx, cy)
+                                 initialTime = System.currentTimeMillis()
                              }
                              // If we transitioned to 3 or 4 fingers, RESET the anchor to treat this as a fresh multi-finger gesture
                              else if (pressedCount >= 3) {
@@ -176,6 +190,8 @@ fun TrackpadScreen(
                             gestureType = "NONE"
                             maxPressedCount = 0
                             previousPressedCount = 0
+                            scrollAccumulatorX = 0f
+                            scrollAccumulatorY = 0f
                         } else if (!isGestureInProgress) {
                             // First finger down
                             isGestureInProgress = true
@@ -257,13 +273,7 @@ fun TrackpadScreen(
                                     (cy - initialCentroid.y) * (cy - initialCentroid.y)
                                 )
                                 
-                                // 2-Finger Long Press -> Show Menu
-                                if (!hasTriggered && gestureType == "TAP_2" && currentTime - initialTime > 500 && totalMove < 30) {
-                                    showMenu = !showMenu
-                                    viewModel.hapticManager.performHeavyClick()
-                                    hasTriggered = true
-                                    gestureType = "LONG_PRESS_2"
-                                }
+                                // 2-Finger Long Press removed
                                 
                                 if (change1.pressed && change1.previousPressed && gestureType != "LONG_PRESS_2") {
                                     val rawDy = (change1.position.y - change1.previousPosition.y)
@@ -273,13 +283,21 @@ fun TrackpadScreen(
                                     val dx = rawDx * scrollSpeed * (if (scrollReverse) -1 else 1)
                                     
                                     // Threshold to switch from TAP_2 to SCROLL
-                                    if (gestureType == "TAP_2" && (abs(dy) > 5 || abs(dx) > 5)) {
+                                    if (gestureType == "TAP_2" && (abs(dy) > 10 || abs(dx) > 10)) {
                                          gestureType = "SCROLL"
                                     }
                                     
                                     if (gestureType == "SCROLL" || gestureType == "TAP_2") { // Allow minor movement to scroll
-                                        if (abs(dy) > 1 || abs(dx) > 1) {
-                                            viewModel.networkClient.sendScroll((-dx).toInt(), (-dy).toInt())
+                                        scrollAccumulatorX += -dx
+                                        scrollAccumulatorY += -dy
+                                        
+                                        val sendX = scrollAccumulatorX.toInt()
+                                        val sendY = scrollAccumulatorY.toInt()
+                                        
+                                        if (sendX != 0 || sendY != 0) {
+                                            viewModel.networkClient.sendScroll(sendX, sendY)
+                                            scrollAccumulatorX -= sendX
+                                            scrollAccumulatorY -= sendY
                                         }
                                     }
                                 }
@@ -316,10 +334,20 @@ fun TrackpadScreen(
                                 val moveX = cx - initialCentroid.x
                                 val moveY = cy - initialCentroid.y
                                 val spanRatio = currentSpan / (initialSpan + 0.1f)
+                                val currentTime = System.currentTimeMillis()
+                                val totalMove = kotlin.math.sqrt(moveX*moveX + moveY*moveY)
                                 
                                 if (!hasTriggered) {
+                                    // 3-Finger Long Press -> Show Menu
+                                    if (currentTime - initialTime > 400 && totalMove < 50) {
+                                        showMenu = !showMenu
+                                        viewModel.hapticManager.performHeavyClick()
+                                        hasTriggered = true
+                                        gestureType = "LONG_PRESS_3"
+                                    }
+                                    
                                     // Pinch In (Show Desktop)
-                                    if (spanRatio < 0.7f) {
+                                    if (spanRatio < 0.7f && gestureType != "LONG_PRESS_3") {
                                         viewModel.networkClient.sendKey("D", listOf("WIN"))
                                         viewModel.hapticManager.performHeavyClick()
                                         hasTriggered = true
@@ -382,7 +410,7 @@ fun TrackpadScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     IconButton(onClick = { onNavigateToMacros(); showMenu = false }) {
-                        Icon(androidx.compose.material.icons.Icons.Default.List, contentDescription = "Macros")
+                        Icon(Icons.Default.Menu, contentDescription = "Macros")
                     }
                     
                     Spacer(modifier = Modifier.height(32.dp))
@@ -430,201 +458,235 @@ fun SettingsDialog(viewModel: MainViewModel, onDismiss: () -> Unit) {
     val language by viewModel.language.collectAsState(initial = "en")
 
     Dialog(onDismissRequest = onDismiss) {
+        // iOS Modal Style
         Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
+            shape = RoundedCornerShape(14.dp), // iOS modal corner radius
+            color = MaterialTheme.colorScheme.background, // iOS Grouped Background
             modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(0.95f) // Wider dialog
+                .padding(vertical = 24.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f) // Tall modal
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    text = uiStrings.settingsTitle,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Responsive Layout
-                androidx.compose.foundation.layout.BoxWithConstraints {
-                    val isWide = maxWidth > 600.dp
-                    
-                    if (isWide) {
-                        // 2-Column Layout (Landscape / Tablet)
-                        androidx.compose.foundation.layout.Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
-                        ) {
-                            // Left Column: Motion & Speed
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(end = 12.dp)
-                            ) {
-                                MotionSettingsContent(uiStrings, cursorSpeed, scrollSpeed, scrollReverse, viewModel)
-                            }
-
-                            // Right Column: General
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(start = 12.dp)
-                            ) {
-                                GeneralSettingsContent(uiStrings, hapticStrength, isMenuRight, themeMode, language, viewModel)
-                            }
-                        }
-                    } else {
-                        // 1-Column Layout (Portrait / Phone) - Scrollable
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(400.dp) // Limit height to allow scrolling within dialog
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                             MotionSettingsContent(uiStrings, cursorSpeed, scrollSpeed, scrollReverse, viewModel)
-                             Spacer(modifier = Modifier.height(24.dp))
-                             androidx.compose.material3.HorizontalDivider()
-                             Spacer(modifier = Modifier.height(24.dp))
-                             GeneralSettingsContent(uiStrings, hapticStrength, isMenuRight, themeMode, language, viewModel)
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                androidx.compose.material3.Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End)
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Header
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(uiStrings.close)
+                    Text(
+                        text = uiStrings.settingsTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    
+                    // Done Button
+                    Text(
+                        text = uiStrings.close,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                             color = MaterialTheme.colorScheme.primary,
+                             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .clickable { onDismiss() }
+                            .padding(8.dp) // larger touch target
+                    )
+                }
+
+                // Content
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(1f)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    // Motion Section
+                    IosSectionHeader(uiStrings.motionHeader)
+                    IosGroup {
+                        IosSliderItem(
+                            label = "${uiStrings.cursorSpeed}: ${String.format("%.1f", cursorSpeed)}x",
+                            value = cursorSpeed,
+                            onValueChange = { viewModel.updateCursorSpeed(it) },
+                            valueRange = 0.5f..5.0f
+                        )
+                        HorizontalDivider()
+                        IosSliderItem(
+                            label = "${uiStrings.scrollSpeed}: ${String.format("%.1f", scrollSpeed * 2)}x",
+                            value = scrollSpeed,
+                            onValueChange = { viewModel.updateScrollSpeed(it) },
+                            valueRange = 0.1f..2.5f
+                        )
+                        HorizontalDivider()
+                        IosSwitchItem(
+                            label = uiStrings.scrollStandard,
+                            checked = scrollReverse,
+                            onCheckedChange = { viewModel.updateScrollReverse(it) },
+                            description = if (scrollReverse) uiStrings.scrollExplanationReverse else uiStrings.scrollExplanationStandard
+                        )
+                    }
+
+                    // Haptic Section
+                    IosSectionHeader(uiStrings.generalHeader)
+                    IosGroup {
+                        IosSliderItem(
+                            label = "${uiStrings.haptic}: ${if (hapticStrength == 0) uiStrings.hapticOff else if (hapticStrength == 1) uiStrings.hapticWeak else uiStrings.hapticStrong}",
+                            value = hapticStrength.toFloat(),
+                            onValueChange = { viewModel.updateHapticStrength(it.toInt()) },
+                            valueRange = 0f..2f,
+                            steps = 1
+                        )
+                    }
+
+                    // Interface Section
+                    IosSectionHeader("INTERFACE")
+                    IosGroup {
+                        IosSwitchItem(
+                            label = uiStrings.menuRight,
+                            checked = isMenuRight,
+                            onCheckedChange = { viewModel.updateMenuPosition(it) }
+                        )
+                        HorizontalDivider()
+                        // Theme Toggle
+                        IosSegmentedControl(
+                            options = listOf("Light", "Dark"),
+                            selectedIndex = if (themeMode == "Light") 0 else 1,
+                            onOptionSelected = { idx -> viewModel.updateThemeMode(if (idx == 0) "Light" else "Dark") }
+                        )
+                        HorizontalDivider()
+                        // Language Toggle
+                        IosSegmentedControl(
+                            options = listOf("English", "日本語"),
+                            selectedIndex = if (language == "ja") 1 else 0,
+                            onOptionSelected = { idx -> viewModel.updateLanguage(if (idx == 0) "en" else "ja") }
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
     }
 }
 
-@Composable
-fun MotionSettingsContent(
-    uiStrings: com.glidedeck.infinity.util.AppStrings,
-    cursorSpeed: Float,
-    scrollSpeed: Float,
-    scrollReverse: Boolean,
-    viewModel: MainViewModel
-) {
-    Text(
-        text = uiStrings.motionHeader,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
-    Spacer(modifier = Modifier.height(12.dp))
+// --- iOS Style Components ---
 
-    // Cursor Speed
-    Text("${uiStrings.cursorSpeed}: ${String.format("%.1f", cursorSpeed)}x")
-    Slider(
-        value = cursorSpeed,
-        onValueChange = { viewModel.updateCursorSpeed(it) },
-        valueRange = 0.5f..5.0f
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    
-    // Scroll Speed (display value = internal * 2, so 0.5 internal = 1.0x display)
-    Text("${uiStrings.scrollSpeed}: ${String.format("%.1f", scrollSpeed * 2)}x")
-    Slider(
-        value = scrollSpeed,
-        onValueChange = { viewModel.updateScrollSpeed(it) },
-        valueRange = 0.25f..2.5f
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    
-    // Scroll Direction
-    Text(uiStrings.scrollDirection)
-    androidx.compose.foundation.layout.Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
-    ) {
-        Text(uiStrings.scrollStandard, style = MaterialTheme.typography.bodySmall)
-        Switch(
-            checked = scrollReverse,
-            onCheckedChange = { viewModel.updateScrollReverse(it) }
-        )
-        Text(uiStrings.scrollReverse, style = MaterialTheme.typography.bodySmall)
-    }
-    // Scroll Explanation
+@Composable
+fun IosSectionHeader(title: String) {
     Text(
-        text = if (scrollReverse) uiStrings.scrollExplanationReverse else uiStrings.scrollExplanationStandard,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 4.dp)
+        text = title.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
     )
 }
 
 @Composable
-fun GeneralSettingsContent(
-    uiStrings: com.glidedeck.infinity.util.AppStrings,
-    hapticStrength: Int,
-    isMenuRight: Boolean,
-    themeMode: String,
-    language: String,
-    viewModel: MainViewModel
+fun IosGroup(content: @Composable () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            content()
+        }
+    }
+}
+
+@Composable
+fun HorizontalDivider() {
+    androidx.compose.material3.HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        thickness = 1.dp,
+        modifier = Modifier.padding(start = 16.dp)
+    )
+}
+
+@Composable
+fun IosSliderItem(
+    label: String,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int = 0
 ) {
-    Text(
-        text = uiStrings.generalHeader,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
-    Spacer(modifier = Modifier.height(12.dp))
-
-    // Haptic
-    Text("${uiStrings.haptic}: ${if (hapticStrength == 0) uiStrings.hapticOff else if (hapticStrength == 1) uiStrings.hapticWeak else uiStrings.hapticStrong}")
-    Slider(
-        value = hapticStrength.toFloat(),
-        onValueChange = { viewModel.updateHapticStrength(it.toInt()) },
-        valueRange = 0f..2f,
-        steps = 1
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    
-    // Menu Position
-    androidx.compose.foundation.layout.Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(uiStrings.menuRight, modifier = Modifier.weight(1f))
-        Switch(
-            checked = isMenuRight,
-            onCheckedChange = { viewModel.updateMenuPosition(it) }
+    Column(modifier = Modifier.padding(16.dp, 12.dp)) {
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+            modifier = Modifier.height(20.dp)
         )
     }
-    
-    Spacer(modifier = Modifier.height(8.dp))
+}
 
-    // Theme Mode
-    androidx.compose.foundation.layout.Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(uiStrings.themeLight, modifier = Modifier.weight(1f))
-        Switch(
-            checked = themeMode == "Light",
-            onCheckedChange = { viewModel.updateThemeMode(if (it) "Light" else "Dark") }
-        )
-    }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    // Language Selector
-    Text(uiStrings.language)
+@Composable
+fun IosSwitchItem(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    description: String? = null
+) {
     androidx.compose.foundation.layout.Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 12.dp)
     ) {
-        Text("English", style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
         Switch(
-            checked = language == "ja",
-            onCheckedChange = { viewModel.updateLanguage(if (it) "ja" else "en") }
+            checked = checked,
+            onCheckedChange = onCheckedChange
         )
-        Text("日本語", style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+fun IosSegmentedControl(
+    options: List<String>,
+    selectedIndex: Int,
+    onOptionSelected: (Int) -> Unit
+) {
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 12.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEachIndexed { index, option ->
+            val isSelected = index == selectedIndex
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha=0.15f) else MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(32.dp)
+                    .clickable { onOptionSelected(index) }
+            ) {
+                androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = option,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
     }
 }
 

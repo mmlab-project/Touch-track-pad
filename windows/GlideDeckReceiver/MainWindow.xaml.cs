@@ -1,15 +1,40 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using QRCoder;
 
 namespace GlideDeckReceiver;
 
+// Dark Title Bar Support
+internal static class DarkTitleBar
+{
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    public static void Apply(Window window)
+    {
+        var hwnd = new WindowInteropHelper(window).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        int darkMode = 1;
+        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkMode, sizeof(int));
+    }
+}
+
 public partial class MainWindow : Window
 {
     private readonly ServerHost _server;
     private readonly List<NetworkAdapterInfo> _adapters;
+    private bool _isEnglish = true;
 
     public MainWindow()
     {
@@ -19,7 +44,7 @@ public partial class MainWindow : Window
         _server.OnLog += message => Dispatcher.Invoke(() => UpdateLog(message));
         _server.OnClientCountChanged += count => Dispatcher.Invoke(() => UpdateClientCount(count));
 
-        // ネットワークアダプタ一覧取得
+        // Network Adapters
         _adapters = NetworkUtils.GetAvailableNetworkAdapters();
         foreach (var adapter in _adapters)
         {
@@ -32,12 +57,10 @@ public partial class MainWindow : Window
         }
         else
         {
-            StatusText.Text = "ネットワークアダプタが見つかりません";
-            StatusIndicator.Fill = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromRgb(244, 67, 54));
+            UpdateStatus(GetString("StatusNoAdapter"), false);
         }
 
-        // クリップボード同期設定
+        // Clipboard
         ClipboardSync.StartMonitoring(this);
         ClipboardSync.OnClipboardChanged += OnLocalClipboardChanged;
 
@@ -46,12 +69,49 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        // Apply dark title bar
+        DarkTitleBar.Apply(this);
+        
         if (_adapters.Count > 0)
         {
             await StartServerAsync(_adapters[0].IpAddress);
         }
         
         RefreshMacroList();
+    }
+
+    private void LanguageButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isEnglish = !_isEnglish;
+        SetLanguage(_isEnglish ? "en" : "ja");
+        
+        // Update button text to show target language (swapped)
+        if (sender is Button btn)
+        {
+             btn.Content = _isEnglish ? "JA" : "EN"; // If English, button shows JA to switch to JA
+        }
+    }
+
+    private void SetLanguage(string culture)
+    {
+        var dict = new ResourceDictionary();
+        dict.Source = new Uri($"Resources/Languages/Strings.{culture}.xaml", UriKind.Relative);
+
+        App.Current.Resources.MergedDictionaries.Clear();
+        App.Current.Resources.MergedDictionaries.Add(dict);
+        
+        // Refresh dynamic UI elements
+        if (_server.IsRunning)
+            UpdateStatus(GetString("StatusServerRunning"), true);
+        else
+            UpdateStatus(GetString("StatusNoAdapter"), false);
+            
+        UpdateClientCount(_server.ClientCount);
+    }
+
+    private string GetString(string key)
+    {
+        return Application.Current.FindResource(key) as string ?? key;
     }
 
     private async Task StartServerAsync(string ip)
@@ -65,11 +125,11 @@ public partial class MainWindow : Window
             PortText.Text = _server.Port.ToString();
             
             UpdateQrCode();
-            UpdateStatus("サーバー稼働中", true);
+            UpdateStatus(GetString("StatusServerRunning"), true);
         }
         catch (Exception ex)
         {
-            UpdateStatus($"エラー: {ex.Message}", false);
+            UpdateStatus($"Error: {ex.Message}", false);
         }
     }
 
@@ -105,13 +165,14 @@ public partial class MainWindow : Window
     {
         StatusText.Text = text;
         StatusIndicator.Fill = new System.Windows.Media.SolidColorBrush(
-            isOk ? System.Windows.Media.Color.FromRgb(76, 175, 80)  // Green
-                 : System.Windows.Media.Color.FromRgb(244, 67, 54)); // Red
+            isOk ? System.Windows.Media.Color.FromRgb(52, 199, 89)   // Green
+                 : System.Windows.Media.Color.FromRgb(255, 59, 48)); // Red
     }
 
     private void UpdateClientCount(int count)
     {
-        ClientCountText.Text = $"接続クライアント: {count}";
+        string format = GetString("LabelClients");
+        ClientCountText.Text = $"{format}{count}";
     }
 
     private void UpdateLog(string message)
@@ -124,7 +185,7 @@ public partial class MainWindow : Window
         await _server.BroadcastClipboardAsync(text);
     }
 
-    private async void IpComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private async void IpComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (IpComboBox.SelectedIndex >= 0 && IpComboBox.SelectedIndex < _adapters.Count)
         {
@@ -136,7 +197,6 @@ public partial class MainWindow : Window
     {
         if (_server.IsRunning)
         {
-            // 新しいトークンでQR再生成
             _ = StartServerAsync(_server.CurrentIp);
         }
     }
@@ -166,7 +226,6 @@ public partial class MainWindow : Window
             dialog.Owner = this;
             if (dialog.ShowDialog() == true)
             {
-                // Macro object is updated by reference, just save
                 _server.MacroManager.Save();
                 RefreshMacroList();
             }
@@ -177,7 +236,10 @@ public partial class MainWindow : Window
     {
         if (MacroList.SelectedItem is MacroItem selected)
         {
-            if (MessageBox.Show($"マクロ '{selected.Name}' を削除しますか？", "確認", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            var msgFormat = GetString("MsgDeleteConfirm");
+            var title = GetString("TitleConfirm");
+            
+            if (MessageBox.Show(string.Format(msgFormat, selected.Name), title, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 _server.MacroManager.RemoveMacro(selected.Id);
                 RefreshMacroList();
@@ -213,7 +275,6 @@ public partial class MainWindow : Window
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-        // 閉じるボタンでトレイに格納
         e.Cancel = true;
         Hide();
     }
@@ -225,5 +286,12 @@ public partial class MainWindow : Window
             Hide();
         }
     }
-}
 
+    private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState == MouseButtonState.Pressed)
+        {
+            DragMove();
+        }
+    }
+}

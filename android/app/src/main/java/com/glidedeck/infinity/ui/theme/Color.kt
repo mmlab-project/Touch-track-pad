@@ -2,19 +2,30 @@
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// iOS System Colors
+val IosBlue = Color(0xFF007AFF)
+val IosGreen = Color(0xFF34C759)
+val IosRed = Color(0xFFFF3B30)
+val IosGray = Color(0xFF8E8E93)
+val IosGray2 = Color(0xFFAEAEB2)
+val IosGray3 = Color(0xFFC7C7CC)
+val IosGray4 = Color(0xFFD1D1D6)
+val IosGray5 = Color(0xFFE5E5EA)
+val IosGray6 = Color(0xFFF2F2F7)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Dark Mode Grays
+val IosDarkGray6 = Color(0xFF1C1C1E) // Secondary System Background
+val IosDarkGray5 = Color(0xFF2C2C2E)
+val IosDarkGray4 = Color(0xFF3A3A3C)
 
-// Glassmorphism Colors
-val GlassBackground = Color(0xFF1a1a2e)
-val GlassSurface = Color(0x8016213e) // 50% opacity
-val GlassBorder = Color(0x40FFFFFF)
-val NeonAccent = Color(0xFFe94560)
-val TextPrimary = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xCCFFFFFF)
+// Semantic Colors
+val LightBackground = IosGray6
+val LightSurface = Color.White
+val DarkBackground = Color.Black
+val DarkSurface = IosDarkGray6
+
+val TextPrimaryLight = Color.Black
+val TextSecondaryLight = Color(0x99000000)
+val TextPrimaryDark = Color.White
+val TextSecondaryDark = Color(0x99FFFFFF)
 

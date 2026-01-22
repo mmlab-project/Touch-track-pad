@@ -13,6 +13,8 @@ public partial class MacroEditWindow : Window
     {
         InitializeComponent();
         
+        Loaded += (_, _) => DarkTitleBar.Apply(this);
+        
         if (existingMacro != null)
         {
             Macro = existingMacro;

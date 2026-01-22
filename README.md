@@ -210,7 +210,7 @@ smartmause/
 │   └── settings.gradle.kts
 │
 ├── windows/                          # Windowsアプリケーション
-│   └── SmartMouseReceiver/
+│   └── GlideDeckReceiver/
 │       ├── App.xaml                             # アプリケーション定義
 │       ├── App.xaml.cs
 │       ├── MainWindow.xaml                      # メインウィンドウUI
@@ -223,7 +223,7 @@ smartmause/
 │       ├── MacroManager.cs                      # マクロ管理
 │       ├── ClipboardSync.cs                     # クリップボード同期
 │       ├── NetworkUtils.cs                      # ネットワークユーティリティ
-│       ├── SmartMouseReceiver.csproj            # プロジェクトファイル
+│       ├── GlideDeckReceiver.csproj             # プロジェクトファイル
 │       ├── icon.ico                             # アプリケーションアイコン
 │       └── macros.json                          # マクロ保存ファイル
 │
@@ -251,7 +251,7 @@ smartmause/
 ```powershell
 # リポジトリをクローン
 git clone https://github.com/mmlab-project/Touch-track-pad.git
-cd Touch-track-pad/windows/SmartMouseReceiver
+cd Touch-track-pad/windows/GlideDeckReceiver
 
 # ビルド
 dotnet build -c Release
@@ -520,7 +520,7 @@ Ctrl + Shift + T (閉じたタブを再度開く)
 
 ```powershell
 # 依存関係の復元
-cd windows/SmartMouseReceiver
+cd windows/GlideDeckReceiver
 dotnet restore
 
 # デバッグビルド

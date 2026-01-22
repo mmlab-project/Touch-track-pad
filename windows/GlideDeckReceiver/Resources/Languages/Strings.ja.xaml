@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:String x:Key="AppTitle">GlideDeck</sys:String>
+    <sys:String x:Key="MinimizeTooltip">トレイに最小化</sys:String>
+
+    <!-- Header -->
+    <sys:String x:Key="LanguageSwitch">EN</sys:String>
+
+    <!-- Tabs -->
+    <sys:String x:Key="TabConnection">接続</sys:String>
+    <sys:String x:Key="TabMacros">マクロ</sys:String>
+
+    <!-- Connection Tab -->
+    <sys:String x:Key="LabelAdapter">ネットワークアダプタ</sys:String>
+    <sys:String x:Key="LabelPort">ポート: </sys:String>
+    <sys:String x:Key="BtnRefresh">QR再生成</sys:String>
+    <sys:String x:Key="StatusServerRunning">サーバー稼働中...</sys:String>
+    <sys:String x:Key="StatusNoAdapter">ネットワークアダプタが見つかりません</sys:String>
+    <sys:String x:Key="LabelClients">接続数: </sys:String>
+
+    <!-- Macro Tab -->
+    <sys:String x:Key="BtnAdd">追加</sys:String>
+    <sys:String x:Key="BtnEdit">編集</sys:String>
+    <sys:String x:Key="BtnDelete">削除</sys:String>
+    <sys:String x:Key="MsgDeleteConfirm">マクロ '{0}' を削除しますか？</sys:String>
+    <sys:String x:Key="TitleConfirm">確認</sys:String>
+
+    <!-- MacroEditWindow -->
+    <sys:String x:Key="MacroEditTitle">マクロ編集</sys:String>
+    <sys:String x:Key="MacroNameLabel">マクロ名</sys:String>
+    <sys:String x:Key="MacroKeysLabel">キー割り当て (最大5キー)</sys:String>
+    <sys:String x:Key="MacroNotSet">[未設定]</sys:String>
+    <sys:String x:Key="MacroInstruction">録画ボタンを押してキーを入力</sys:String>
+    <sys:String x:Key="MacroRecord">● 入力開始</sys:String>
+    <sys:String x:Key="MacroClear">クリア</sys:String>
+    <sys:String x:Key="MacroCancel">キャンセル</sys:String>
+    <sys:String x:Key="MacroSave">登録完了</sys:String>
+</ResourceDictionary>

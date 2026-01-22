@@ -26,6 +26,7 @@ public class ServerHost : IDisposable
     public string CurrentIp { get; private set; } = "";
     public int Port { get; private set; } = DefaultPort;
     public string Token => _currentToken;
+    public int ClientCount => _sessionManager.ActiveClientCount;
     public bool IsRunning => _tcpListener != null;
 
     public MacroManager MacroManager { get; } = new MacroManager();

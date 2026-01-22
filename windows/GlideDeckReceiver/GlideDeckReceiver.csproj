@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>GlideDeckReceiver</AssemblyName>
-    <RootNamespace>SmartMouseReceiver</RootNamespace>
+    <RootNamespace>GlideDeckReceiver</RootNamespace>
     <Version>1.1.0</Version>
     <Authors>GlideDeck</Authors>
     <Description>GlideDeck - Ultimate Wi-Fi Remote - Windows Receiver</Description>
@@ -17,6 +17,7 @@
     <PackageReference Include="QRCoder" Version="1.4.3" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

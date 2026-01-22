@@ -39,7 +39,7 @@ class SettingsRepository(private val context: Context) {
     }
 
     val scrollSpeed: Flow<Float> = context.dataStore.data.map { preferences ->
-        preferences[KEY_SCROLL_SPEED] ?: 0.5f
+        preferences[KEY_SCROLL_SPEED] ?: 0.25f
     }
 
     val hapticStrength: Flow<Int> = context.dataStore.data.map { preferences ->
