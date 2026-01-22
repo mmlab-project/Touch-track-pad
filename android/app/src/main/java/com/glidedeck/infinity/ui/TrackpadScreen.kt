@@ -528,12 +528,12 @@ fun MotionSettingsContent(
     )
     Spacer(modifier = Modifier.height(8.dp))
     
-    // Scroll Speed
-    Text("${uiStrings.scrollSpeed}: ${String.format("%.1f", scrollSpeed)}x")
+    // Scroll Speed (display value = internal * 2, so 0.5 internal = 1.0x display)
+    Text("${uiStrings.scrollSpeed}: ${String.format("%.1f", scrollSpeed * 2)}x")
     Slider(
         value = scrollSpeed,
         onValueChange = { viewModel.updateScrollSpeed(it) },
-        valueRange = 0.5f..5.0f
+        valueRange = 0.25f..2.5f
     )
     Spacer(modifier = Modifier.height(8.dp))
     
