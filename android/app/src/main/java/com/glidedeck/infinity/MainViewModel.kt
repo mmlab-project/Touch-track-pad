@@ -25,6 +25,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isConnected = MutableStateFlow(false)
     val isConnected = _isConnected.asStateFlow()
     
+    private val _isReconnecting = MutableStateFlow(false)
+    val isReconnecting = _isReconnecting.asStateFlow()
+    
     val cursorSpeed = settingsRepo.cursorSpeed
     val scrollSpeed = settingsRepo.scrollSpeed
     
@@ -44,6 +47,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         networkClient.onConnectionStateChanged = { connected ->
             _isConnected.value = connected
+        }
+        networkClient.onReconnectingStateChanged = { reconnecting ->
+            _isReconnecting.value = reconnecting
         }
         networkClient.onMacrosReceived = { newMacros ->
             _macros.value = newMacros
