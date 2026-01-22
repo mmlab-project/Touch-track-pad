@@ -48,6 +48,12 @@ class NetworkClient {
     // UDP Executor for efficient packet sending
     private var udpExecutor: ExecutorService? = null
     
+    // Throttling for mouse movement (reduce packet spam)
+    private val MOUSE_SEND_INTERVAL_MS = 8L // ~120Hz max
+    private var lastMouseSendTime = 0L
+    private var accumulatedDx = 0
+    private var accumulatedDy = 0
+    
     // Coroutine scope for background tasks
     private val networkScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
@@ -291,11 +297,30 @@ class NetworkClient {
     fun sendMouseMove(dx: Int, dy: Int) {
         if (!isConnected.get() || udpSocket == null || address == null) return
         
+        // Accumulate movement
+        accumulatedDx += dx
+        accumulatedDy += dy
+        
+        // Throttle: only send if enough time has passed
+        val now = System.currentTimeMillis()
+        if (now - lastMouseSendTime < MOUSE_SEND_INTERVAL_MS) {
+            return // Skip this frame, movement is accumulated
+        }
+        
+        // Send accumulated movement
+        val sendDx = accumulatedDx
+        val sendDy = accumulatedDy
+        accumulatedDx = 0
+        accumulatedDy = 0
+        lastMouseSendTime = now
+        
+        if (sendDx == 0 && sendDy == 0) return
+        
         val socket = udpSocket ?: return
         val addr = address ?: return
         
         try {
-            val message = "$authToken|M|$dx|$dy"
+            val message = "$authToken|M|$sendDx|$sendDy"
             val data = message.toByteArray()
             val packet = DatagramPacket(data, data.size, addr, serverPort)
             
