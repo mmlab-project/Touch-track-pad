@@ -186,7 +186,7 @@ smartmause/
 │   ├── app/
 │   │   ├── src/
 │   │   │   └── main/
-│   │   │       ├── java/com/smartmause/infinity/
+│   │   │       ├── java/com/glidedeck/infinity/
 │   │   │       │   ├── MainActivity.kt          # メインアクティビティ
 │   │   │       │   ├── MainViewModel.kt         # メインビューモデル
 │   │   │       │   ├── data/
