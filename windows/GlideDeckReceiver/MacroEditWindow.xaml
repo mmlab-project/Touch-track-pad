@@ -7,10 +7,14 @@
         Background="{DynamicResource WindowGlassBrush}">
     <Window.Resources>
         <!-- TextBox Style for this window -->
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="Background" Value="#F2F2F7"/>
-            <Setter Property="Foreground" Value="Black"/>
+        <Style x:Key="MacroInputBox" TargetType="TextBox">
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#1C1C1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="#007AFF"/>
+            <Setter Property="SelectionBrush" Value="#007AFF"/>
+            <Setter Property="SelectionTextBrush" Value="White"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="14"/>
@@ -21,7 +25,9 @@
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
                                 CornerRadius="12">
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -32,7 +38,8 @@
     <Viewbox Stretch="Uniform">
         <StackPanel Margin="20" Width="320">
             <TextBlock Text="{DynamicResource MacroNameLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14" Margin="0,0,0,8"/>
-            <TextBox x:Name="NameBox" Text="New Macro" Height="44"/>
+            <TextBox x:Name="NameBox" Style="{StaticResource MacroInputBox}" 
+                     Text="New Macro" Height="44"/>
             
             <TextBlock Text="{DynamicResource MacroKeysLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14" Margin="0,25,0,8"/>
             <Border Background="{DynamicResource SurfaceGlassBrush}" CornerRadius="12" Padding="20" MinHeight="100" Margin="0,0,0,30">
