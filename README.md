@@ -237,11 +237,11 @@ smartmause/
 
 ### Windows側 (Receiver)
 
-#### 方法1: リリース版を使用（推奨）
+#### 方法1: インストーラーを使用（推奨）
 
-1. [Releasesページ](https://github.com/mmlab-project/Touch-track-pad/releases) から最新版の `GlideDeckReceiver.exe` をダウンロード
-2. ダウンロードしたファイルを任意の場所に配置
-3. `GlideDeckReceiver.exe` を実行
+1. [Releasesページ](https://github.com/mmlab-project/Touch-track-pad/releases) から最新版の `GlideDeckReceiver_Setup.exe` をダウンロード
+2. ダウンロードしたファイルを実行してインストール
+3. デスクトップのショートカットまたはスタートメニューから起動
 
 > [!IMPORTANT]
 > 初回起動時、Windowsファイアウォールの警告が表示される場合があります。「アクセスを許可する」を選択してください。
