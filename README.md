@@ -258,7 +258,20 @@ dotnet build -c Release
 
 # 実行
 dotnet run
+dotnet run
 ```
+
+#### Windowsインストーラーの作成
+
+配布用のインストーラー（Setupファイル）を作成するには、[Inno Setup](https://jrsoftware.org/isdl.php) を使用します。
+
+1. **Inno Setup** をインストール
+2. `windows/GlideDeckReceiver/SetupScript/setup.iss` をダブルクリックして開く
+3. ツールバーの **Build** ボタン（または `Ctrl + F9`）をクリック
+4. 以下のフォルダにインストーラーが生成されます：
+   ```
+   windows/GlideDeckReceiver/SetupScript/Output/GlideDeckReceiver_Setup.exe
+   ```
 
 ### Android側 (Sender)
 
