@@ -12,11 +12,17 @@ public class MacroItem
 
 public class MacroManager
 {
-    private const string FileName = "macros.json";
+
     public List<MacroItem> Macros { get; private set; } = new List<MacroItem>();
 
-    public MacroManager()
+    private string _filePath;
+
+    public MacroManager() 
     {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var dir = Path.Combine(appData, "GlideDeckReceiver");
+        Directory.CreateDirectory(dir);
+        _filePath = Path.Combine(dir, "macros.json");
         Load();
     }
 
@@ -24,9 +30,9 @@ public class MacroManager
     {
         try
         {
-            if (File.Exists(FileName))
+            if (File.Exists(_filePath))
             {
-                var json = File.ReadAllText(FileName);
+                var json = File.ReadAllText(_filePath);
                 Macros = JsonConvert.DeserializeObject<List<MacroItem>>(json) ?? new List<MacroItem>();
             }
         }
@@ -41,7 +47,7 @@ public class MacroManager
         try
         {
             var json = JsonConvert.SerializeObject(Macros, Formatting.Indented);
-            File.WriteAllText(FileName, json);
+            File.WriteAllText(_filePath, json);
         }
         catch
         {

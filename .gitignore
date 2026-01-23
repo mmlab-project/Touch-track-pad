@@ -34,3 +34,5 @@ Desktop.ini
 dist/
 
 dist-single/
+
+SetupScript/Output/
